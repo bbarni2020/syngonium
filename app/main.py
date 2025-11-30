@@ -1,30 +1,30 @@
-import logging
-from .config import AI_DEBUG
-import os
-import os
-import time
-import json
 import http.server
+import json
+import logging
+import os
 import socketserver
+
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-from .config import bot_token, app_token
+
+from .config import AI_DEBUG, HEALTH_PORT, app_token, bot_token
 from .handlers import register_handlers
 
 
 def create_app():
     if AI_DEBUG:
-        logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+        logging.basicConfig(
+            level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(message)s"
+        )
     else:
-        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+        logging.basicConfig(
+            level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s"
+        )
     if not bot_token or not app_token:
         raise SystemExit("Missing SLACK_BOT_TOKEN or SLACK_APP_TOKEN")
     app = App(token=bot_token)
     register_handlers(app)
     return app
-
-
-from .config import HEALTH_PORT
 
 
 def _start_health_server(port: int = HEALTH_PORT, metrics=None):

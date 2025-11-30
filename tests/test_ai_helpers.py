@@ -10,6 +10,8 @@ def test_local_validate_ok():
 
 def test_local_validate_missing_greeting():
     source = ""
-    candidate = "This is an answer without greeting. If this helped, please close the ticket."
+    candidate = (
+        "This is an answer without greeting. If this helped, please close the ticket."
+    )
     ok, why = local_validate(candidate, source)
     assert not ok

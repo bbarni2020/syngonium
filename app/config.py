@@ -1,5 +1,6 @@
-from pathlib import Path
 import os
+from pathlib import Path
+
 import certifi
 
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "production").lower()

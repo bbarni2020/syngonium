@@ -1,12 +1,18 @@
-import requests
-import time
 import threading
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+import time
 from typing import Dict
 
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
-def create_session(max_retries=3, backoff_factor=1.0, status_forcelist=(429, 500, 502, 503, 504), pool_size=10):
+
+def create_session(
+    max_retries=3,
+    backoff_factor=1.0,
+    status_forcelist=(429, 500, 502, 503, 504),
+    pool_size=10,
+):
     s = requests.Session()
     retry = Retry(
         total=max_retries,
@@ -15,7 +21,9 @@ def create_session(max_retries=3, backoff_factor=1.0, status_forcelist=(429, 500
         allowed_methods=frozenset(["GET", "POST", "PUT", "DELETE", "PATCH"]),
         raise_on_status=False,
     )
-    adapter = HTTPAdapter(max_retries=retry, pool_connections=pool_size, pool_maxsize=pool_size)
+    adapter = HTTPAdapter(
+        max_retries=retry, pool_connections=pool_size, pool_maxsize=pool_size
+    )
     s.mount("https://", adapter)
     s.mount("http://", adapter)
     return s
