@@ -215,3 +215,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Pre-commit cache
+.cache/pre-commit/
+
+# macOS
+.DS_Store

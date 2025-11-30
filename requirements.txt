@@ -9,3 +9,6 @@ soupsieve==2.8
 typing_extensions==4.15.0
 urllib3==2.5.0
 gunicorn==21.2.0
+
+pre-commit==4.5.0
+detect-secrets==1.5.0
