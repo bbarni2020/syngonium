@@ -12,7 +12,26 @@ if ENVIRONMENT == "development":
 
             load_dotenv(str(DOTENV_PATH))
         except Exception:
-            pass
+            try:
+                with DOTENV_PATH.open("r") as fh:
+                    for raw in fh:
+                        line = raw.strip()
+                        if not line or line.startswith("#"):
+                            continue
+                        if "=" not in line:
+                            continue
+                        k, v = line.split("=", 1)
+                        k = k.strip()
+                        v = v.strip()
+                        # remove single/double quotes around the value if present
+                        if (v.startswith('"') and v.endswith('"')) or (
+                            v.startswith("'") and v.endswith("'")
+                        ):
+                            v = v[1:-1]
+                        # if env var not already set in the environment, populate it
+                        os.environ.setdefault(k, v)
+            except Exception:
+                pass
 
 bot_token = os.environ.get("SLACK_BOT_TOKEN")
 app_token = os.environ.get("SLACK_APP_TOKEN")
@@ -35,5 +54,17 @@ if listen_env:
     listen_channels = [c.strip() for c in listen_env.split(",") if c.strip()]
 else:
     listen_channels = []
+check_env = os.environ.get("CHECK_CHANNELS", "")
+if check_env:
+    check_channels = [c.strip() for c in check_env.split(",") if c.strip()]
+else:
+    check_channels = []
+
+invite_env = os.environ.get("INVITE_CHANNELS", "")
+if invite_env:
+    invite_channels = [c.strip() for c in invite_env.split(",") if c.strip()]
+else:
+    invite_channels = []
+INVITE_SYNC_INTERVAL_S = int(os.environ.get("INVITE_SYNC_INTERVAL_S", "600"))
 os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 AI_DEBUG = os.environ.get("AI_DEBUG", "false").lower() in ("1", "true", "yes")

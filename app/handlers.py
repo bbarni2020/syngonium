@@ -1,5 +1,6 @@
 import os
 import re
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -9,11 +10,14 @@ from .config import (
     AI_CIRCUIT_RECOVERY,
     AI_MAX_RPS,
     AI_RPS_CAPACITY,
+    INVITE_SYNC_INTERVAL_S,
     LOCAL_DOCS_PATH,
     api_base,
     api_key,
     api_model,
+    check_channels,
     faq_link,
+    invite_channels,
     listen_channels,
 )
 from .utils import CircuitBreaker, TokenBucket, create_session, update_metric
@@ -152,6 +156,115 @@ def process_message(channel_arg, ts_arg, text_arg, client_arg, logger_arg):
 executor = ThreadPoolExecutor(max_workers=int(os.environ.get("AI_MAX_WORKERS", "5")))
 
 
+def _get_channel_members(client, channel_id):
+    members = set()
+    cursor = None
+    while True:
+        try:
+            kwargs = {"channel": channel_id, "limit": 1000}
+            if cursor:
+                kwargs["cursor"] = cursor
+            resp = client.conversations_members(**kwargs)
+            page_members = resp.get("members") or []
+            members.update(page_members)
+            cursor = resp.get("response_metadata", {}).get("next_cursor") or None
+            if not cursor:
+                break
+        except Exception:
+            break
+    return members
+
+
+def _is_bot_or_deleted(client, user_id):
+    try:
+        resp = client.users_info(user=user_id)
+        user = resp.get("user") or {}
+        if user.get("deleted"):
+            return True
+        if user.get("is_bot"):
+            return True
+        return False
+    except Exception:
+        return True
+
+
+def invite_missing_users(client, logger=None):
+    if not check_channels or not invite_channels:
+        return
+    if not hasattr(client, "conversations_members"):
+        return
+    for check_chan in check_channels:
+        try:
+            source_members = _get_channel_members(client, check_chan)
+        except Exception:
+            source_members = set()
+        if not source_members:
+            continue
+        for invite_chan in invite_channels:
+            try:
+                target_members = _get_channel_members(client, invite_chan)
+            except Exception:
+                target_members = set()
+            to_invite = [u for u in source_members if u not in target_members]
+            if not to_invite:
+                continue
+            for user in to_invite:
+                if _is_bot_or_deleted(client, user):
+                    continue
+                try:
+                    client.conversations_invite(channel=invite_chan, users=user)
+                    update_metric("invite_success", 1)
+                except Exception as e:
+                    update_metric("invite_failure", 1)
+                    try:
+                        msg = getattr(e, "response", {}).get("error")
+                    except Exception:
+                        msg = None
+                    if msg and "already_in_channel" in msg:
+                        continue
+                    if logger:
+                        try:
+                            logger.error(
+                                "Failed to invite %s to %s: %s", user, invite_chan, e
+                            )
+                        except Exception:
+                            pass
+
+
+def invite_user_to_channels(client, user_id, src_channel=None, logger=None):
+    if not check_channels or not invite_channels:
+        return
+    if src_channel and check_channels and src_channel not in check_channels:
+        return
+    if _is_bot_or_deleted(client, user_id):
+        return
+    for invite_chan in invite_channels:
+        try:
+            target_members = _get_channel_members(client, invite_chan)
+        except Exception:
+            target_members = set()
+        if user_id in target_members:
+            continue
+        try:
+            client.conversations_invite(channel=invite_chan, users=user_id)
+            update_metric("invite_success", 1)
+        except Exception as e:
+            update_metric("invite_failure", 1)
+            try:
+                msg = getattr(e, "response", {}).get("error")
+            except Exception:
+                msg = None
+            if msg and "already_in_channel" in msg:
+                continue
+            if logger:
+                try:
+                    logger.error(
+                        "Failed to invite %s to %s: %s", user_id, invite_chan, e
+                    )
+                except Exception:
+                    pass
+
+
 def register_handlers(app):
     @app.event("message")
     def handle_message_events(body, event, client, logger):
@@ -172,3 +285,44 @@ def register_handlers(app):
             executor.submit(process_message, channel, ts, text, client, logger)
         except Exception:
             raise
+
+    pass
+
+    def _start_invite_sync_thread(app):
+        if getattr(app, "_invite_sync_started", False):
+            return
+        app._invite_sync_started = True
+
+        def _run_loop():
+            while True:
+                try:
+                    invite_missing_users(
+                        app.client, app.logger if hasattr(app, "logger") else None
+                    )
+                except Exception:
+                    pass
+                time.sleep(INVITE_SYNC_INTERVAL_S)
+
+        t = threading.Thread(target=_run_loop, daemon=True)
+        t.start()
+
+    _start_invite_sync_thread(app)
+
+    @app.event("member_joined_channel")
+    def handle_member_joined_channel_events(body, event, client, logger):
+        try:
+            user = event.get("user")
+            channel = event.get("channel")
+            if not user:
+                return
+            if channel and check_channels and channel not in check_channels:
+                return
+            try:
+                executor.submit(invite_user_to_channels, client, user, channel, logger)
+            except Exception:
+                try:
+                    invite_user_to_channels(client, user, channel, logger)
+                except Exception:
+                    pass
+        except Exception:
+            return
