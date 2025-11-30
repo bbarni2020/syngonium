@@ -1,0 +1,18 @@
+[Unit]
+Description=Syngonium Slack bot
+After=network.target
+
+[Service]
+Type=simple
+User=syngonium
+Group=syngonium
+WorkingDirectory=/opt/syngonium
+EnvironmentFile=/etc/default/syngonium
+ExecStart=/bin/bash -lc '/opt/syngonium/run.sh'
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
