@@ -28,6 +28,20 @@ circuit_breaker = CircuitBreaker(
     failure_threshold=AI_CIRCUIT_FAILS, recovery_timeout=AI_CIRCUIT_RECOVERY
 )
 
+CHECK_SYSTEM_PROMPT = (
+    "You are a system checker. Using ONLY the FAQ below, decide whether the FAQ contains the answer. "
+    "Reply ONLY 'YES' or 'NO' and include a single short justification (one sentence)."
+)
+
+ANSWER_SYSTEM_PROMPT = (
+    "You are a friendly, slightly playful assistant. Use ONLY the FAQ below to answer the user's question. "
+    "Start with a brief friendly greeting (for example: 'Hi', 'Hello', 'Hiya') and then provide a concise, factual answer. "
+    "Keep the tone warm and approachable — you may include a short emoji or a friendly phrase (e.g., 'Cheers!') to add personality, but keep the information accurate and grounded in the FAQ. "
+    "At the end, include a one-line disclaimer stating the information was taken from the FAQ and may be incomplete (eg. 'Information above is taken from the FAQ and may be incomplete.'). "
+    "If the question is resolved by the FAQ, suggest the user close the ticket (for example: 'If this helped, please close the ticket.'). "
+    "Do NOT ask the user follow-up questions, nor offer open-ended invites to follow up (avoid phrases like 'let me know', 'do you need', 'any other questions', 'contact me', 'follow up')."
+)
+
 
 def _post_with_policies(url, payload, headers, timeout=(20, 30)):
     if not circuit_breaker.allow():
@@ -56,8 +70,8 @@ def process_message(channel_arg, ts_arg, text_arg, client_arg, logger_arg):
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
-        check_system = "You are a system checker. Using ONLY the FAQ below, decide whether the FAQ contains the answer. Reply ONLY 'YES' or 'NO' and include a single short justification (one sentence)."
-        answer_system = "You are a friendly assistant. Use ONLY the FAQ below to answer the user's question. Start with a brief greeting and give a concise answer. At the end, add a one-line disclaimer stating that the information was taken from the FAQ and may be incomplete. Also suggest the user close the ticket if the question is resolved."
+        check_system = CHECK_SYSTEM_PROMPT
+        answer_system = ANSWER_SYSTEM_PROMPT
         check_payload_inner = {
             "model": api_model,
             "messages": [
