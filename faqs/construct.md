@@ -16,13 +16,13 @@ Who runs this?
 
 Our team is led by a crew of 7 people. They've worked around the clock to help make this ysws come to life!
 
-[@user](https://slack.com/team/U0929F6RWL9) (org)\
+[@user](https://slack.com/team/U0929F6RWL9) (org (The one who forced the others to work :D ))\
 [@user](https://slack.com/team/U07BN55GN3D) (sponsor / org)\
 [@user](https://slack.com/team/U09192704Q7) (lead website designer + org)\
 [@user](https://slack.com/team/U07D01SEFFV) (also an org)\
-[@user](https://slack.com/team/U07H3E1CW7J) (org asw)\
+[@user](https://slack.com/team/U07H3E1CW7J) (org / bot maker)\
 [@user](https://slack.com/team/U07AZFQLPQ8) (lead of design (aka cool sticker maker))\
-[@user](https://slack.com/team/U078WRWQPGF) (another org)
+[@grass](https://hackclub.enterprise.slack.com/team/U078WRWQPGF) (another org)
 
 FAQ:
 ====
@@ -38,12 +38,17 @@ How can I earn Bricks/Clay?
 for every hour you work and journal, you shall receive 1 bag of clay!\
 After you buy a base 3D printer, you will start receiving bricks! 10 per hour! Bricks can be used to buy items in the Brick Shop! They can also be used to upgrade your printer.\
 If you don't wish to buy a 3D printer, you may convert your clay bag to bricks. This is done by Ovenpheus at a rate of 9 bricks for 1 bag of clay, upon request. You will continue to still earn clay bags which you can still convert. (This is in place in case you want to change your mind in the near future)\
-Alternatively, when you buy a base 3D printer, you won't need the help of Ovenpheus as you'll get a free - super cool - Firing Oven 2000 :tm: : which converts your bags of clay automatically at the rate of 10 bricks for every 1 bag of clay.
+Alternatively, when you buy a base 3D printer, you won't need the help of Ovenpheus as you'll get a free - super cool - Firing Oven 2000 :tm: : which converts your bags of clay automatically at the rate of 10 bricks for every 1 bag of clay.\
 
 How many projects can I make?
 -----------------------------
 
-You can make as many projects as you like! Please refrain from copying other projects 1:1.
+You can make as many projects as you like, as long as each project meets the 2-hour minimum requirement! Please refrain from copying other projects 1:1.
+
+Can I work on multiple short projects?
+--------------------------------------
+
+Yes, as long as each project meets the 2-hour minimum requirement.
 
 What can I make?
 ----------------
@@ -124,3 +129,13 @@ Here's the list of software you can use:
 -   Rhino
 
 No TinkerCAD or SketchUp please.
+
+What's the minimum hours per project?
+-------------------------------------
+
+The minimum is 2 hours per project.
+
+I'm new to CAD design and it takes me longer to complete tasks. Is that okay?
+-----------------------------------------------------------------------------
+
+Absolutely! We welcome beginners. However, please note that research/tutorials time (like looking up how to perform specific functions in your software) is not counted toward your project hours. Only active work on the project itself counts.
