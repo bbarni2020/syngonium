@@ -66,5 +66,9 @@ if invite_env:
 else:
     invite_channels = []
 INVITE_SYNC_INTERVAL_S = int(os.environ.get("INVITE_SYNC_INTERVAL_S", "600"))
+INVITE_CACHE_PATH = os.environ.get(
+    "INVITE_CACHE_PATH",
+    str(Path.home() / ".syngonium" / "invite_cache.json"),
+)
 os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 AI_DEBUG = os.environ.get("AI_DEBUG", "false").lower() in ("1", "true", "yes")

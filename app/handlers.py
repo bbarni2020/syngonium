@@ -1,8 +1,11 @@
+import json
 import os
 import re
+import tempfile
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 from .ai_helpers import local_validate, read_faq
 from .config import (
@@ -27,6 +30,81 @@ rate_limiter = TokenBucket(rate=AI_MAX_RPS, capacity=AI_RPS_CAPACITY)
 circuit_breaker = CircuitBreaker(
     failure_threshold=AI_CIRCUIT_FAILS, recovery_timeout=AI_CIRCUIT_RECOVERY
 )
+
+_already_invited = set()
+_invite_cache_lock = threading.Lock()
+
+
+def _get_cache_path() -> Path:
+    try:
+        from . import config as cfg
+
+        p = Path(str(getattr(cfg, "INVITE_CACHE_PATH", "")))
+    except Exception:
+        p = Path.home() / ".syngonium" / "invite_cache.json"
+    return p
+
+
+def _ensure_cache_dir(path: Path):
+    parent = path.parent
+    if not parent.exists():
+        parent.mkdir(parents=True, exist_ok=True)
+        try:
+            parent.chmod(0o700)
+        except Exception:
+            pass
+
+
+def _load_invite_cache():
+    path = _get_cache_path()
+    if not path.exists():
+        return
+    try:
+        with _invite_cache_lock:
+            with path.open("r") as fh:
+                data = json.load(fh)
+            if not isinstance(data, list):
+                return
+            _already_invited.clear()
+            for tup in data:
+                if isinstance(tup, (list, tuple)) and len(tup) == 2:
+                    _already_invited.add((tup[0], tup[1]))
+    except Exception:
+        return
+
+
+def _save_invite_cache():
+    path = _get_cache_path()
+    _ensure_cache_dir(path)
+    try:
+        with _invite_cache_lock:
+            data = [[c, u] for (c, u) in _already_invited]
+            dir_name = str(path.parent)
+            fd, tmpname = tempfile.mkstemp(dir=dir_name)
+            try:
+                with os.fdopen(fd, "w") as tmpfh:
+                    json.dump(data, tmpfh)
+                    tmpfh.flush()
+                    os.fsync(tmpfh.fileno())
+                try:
+                    os.chmod(tmpname, 0o600)
+                except Exception:
+                    pass
+                os.replace(tmpname, str(path))
+            finally:
+                try:
+                    if os.path.exists(tmpname):
+                        os.remove(tmpname)
+                except Exception:
+                    pass
+    except Exception:
+        return
+
+
+try:
+    _load_invite_cache()
+except Exception:
+    pass
 
 CHECK_SYSTEM_PROMPT = (
     "You are a system checker. Using ONLY the FAQ below, decide whether the FAQ contains the answer. "
@@ -223,11 +301,24 @@ def invite_missing_users(client, logger=None):
             if not to_invite:
                 continue
             for user in to_invite:
+                try:
+                    if (invite_chan, user) in _already_invited:
+                        continue
+                except NameError:
+                    globals().setdefault("_already_invited", set())
+                    if (invite_chan, user) in _already_invited:
+                        continue
                 if _is_bot_or_deleted(client, user):
                     continue
                 try:
                     client.conversations_invite(channel=invite_chan, users=user)
                     update_metric("invite_success", 1)
+                    globals().setdefault("_already_invited", set())
+                    _already_invited.add((invite_chan, user))
+                    try:
+                        _save_invite_cache()
+                    except Exception:
+                        pass
                 except Exception as e:
                     update_metric("invite_failure", 1)
                     try:
@@ -260,8 +351,21 @@ def invite_user_to_channels(client, user_id, src_channel=None, logger=None):
         if user_id in target_members:
             continue
         try:
+            if (invite_chan, user_id) in _already_invited:
+                continue
+        except NameError:
+            globals().setdefault("_already_invited", set())
+            if (invite_chan, user_id) in _already_invited:
+                continue
+        try:
             client.conversations_invite(channel=invite_chan, users=user_id)
             update_metric("invite_success", 1)
+            globals().setdefault("_already_invited", set())
+            _already_invited.add((invite_chan, user_id))
+            try:
+                _save_invite_cache()
+            except Exception:
+                pass
         except Exception as e:
             update_metric("invite_failure", 1)
             try:
