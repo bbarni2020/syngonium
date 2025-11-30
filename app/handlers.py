@@ -35,6 +35,16 @@ _already_invited = set()
 _invite_cache_lock = threading.Lock()
 
 
+def _is_safe_path_for_chmod(path: Path) -> bool:
+    try:
+        p = Path(path).resolve()
+        home = Path.home().resolve()
+        tmpdir = Path(tempfile.gettempdir()).resolve()
+        return str(p).startswith(str(home)) or str(p).startswith(str(tmpdir))
+    except Exception:
+        return False
+
+
 def _get_cache_path() -> Path:
     try:
         from . import config as cfg
@@ -50,7 +60,8 @@ def _ensure_cache_dir(path: Path):
     if not parent.exists():
         parent.mkdir(parents=True, exist_ok=True)
         try:
-            parent.chmod(0o700)
+            if _is_safe_path_for_chmod(parent):
+                parent.chmod(0o700)
         except Exception:
             pass
 
@@ -87,7 +98,8 @@ def _save_invite_cache():
                     tmpfh.flush()
                     os.fsync(tmpfh.fileno())
                 try:
-                    os.chmod(tmpname, 0o600)
+                    if _is_safe_path_for_chmod(Path(tmpname)):
+                        os.chmod(tmpname, 0o600)
                 except Exception:
                     pass
                 os.replace(tmpname, str(path))
