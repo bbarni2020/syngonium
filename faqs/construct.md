@@ -1,7 +1,5 @@
-CONSTRUCT FAQ**Note: the FAQ is currently a bit out of date, we'll be fixing that sometime soonish**
-
-:siren-real: :siren-real: Please take a look at this FAQ, there's a good chance that whatever you're looking for is in here. :siren-real::siren-real:
-=====================================================================================================================================================
+A few things to clarify:
+double dipping: this means counting your hours in multiple programs (YSWSs)
 
 * * * * *
 
