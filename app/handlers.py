@@ -296,25 +296,21 @@ def _is_user_manager(client, user_id):
         return False
 
 
-def _get_all_workspace_members(client):
+def _get_source_members(client):
     members = set()
-    cursor = None
-    while True:
+    if not check_channels:
+        return members
+    for check_chan in check_channels:
         try:
-            kwargs = {"limit": 1000}
-            if cursor:
-                kwargs["cursor"] = cursor
-            resp = client.users_list(**kwargs)
-            page_members = resp.get("members") or []
-            for user in page_members:
-                if not user.get("deleted") and not user.get("is_bot"):
-                    members.add(user.get("id"))
-            cursor = resp.get("response_metadata", {}).get("next_cursor") or None
-            if not cursor:
-                break
+            chan_members = _get_channel_members(client, check_chan)
         except Exception:
-            break
-    return members
+            chan_members = set()
+        members.update(chan_members)
+    filtered = set()
+    for uid in members:
+        if not _is_bot_or_deleted(client, uid):
+            filtered.add(uid)
+    return filtered
 
 
 def _get_channel_name(client, channel_id):
@@ -353,13 +349,25 @@ def _build_dashboard_view(client):
         )
         return {"type": "home", "blocks": blocks}
 
-    all_members = _get_all_workspace_members(client)
+    if not check_channels:
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "_No CHECK_CHANNELS configured — nothing to sync from._",
+                },
+            }
+        )
+        return {"type": "home", "blocks": blocks}
+
+    source_members = _get_source_members(client)
 
     channel_info = {}
     for channel_id in invite_channels:
         members = _get_channel_members(client, channel_id)
         channel_name = _get_channel_name(client, channel_id)
-        missing = all_members - members
+        missing = source_members - members
         channel_info[channel_id] = {
             "name": channel_name,
             "members": members,
@@ -371,7 +379,7 @@ def _build_dashboard_view(client):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Configured Channels:* {len(invite_channels)}\n*Total Workspace Members:* {len(all_members)}",
+                "text": f"*Configured Channels:* {len(invite_channels)}\n*Eligible Members (in CHECK_CHANNELS):* {len(source_members)}",
             },
         }
     )
@@ -420,17 +428,17 @@ def _build_dashboard_view(client):
 
 
 def _sync_all_users_to_channels(client, logger=None):
-    if not invite_channels:
+    if not invite_channels or not check_channels:
         return 0, 0
 
-    all_members = _get_all_workspace_members(client)
+    source_members = _get_source_members(client)
 
     success_count = 0
     failure_count = 0
 
     for channel_id in invite_channels:
         current_members = _get_channel_members(client, channel_id)
-        to_invite = all_members - current_members
+        to_invite = source_members - current_members
 
         for user_id in to_invite:
             try:
