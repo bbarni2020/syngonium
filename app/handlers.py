@@ -558,6 +558,10 @@ def register_handlers(app):
     def handle_sync_all_users(ack, body, client, logger):
         try:
             ack()
+            try:
+                logger.info(body)
+            except Exception:
+                pass
             user_id = body.get("user", {}).get("id")
             if not user_id:
                 return
