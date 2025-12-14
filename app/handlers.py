@@ -17,6 +17,7 @@ from .config import (
     faq_link,
     invite_channels,
     listen_channels,
+    managers_group,
 )
 from .utils import CircuitBreaker, TokenBucket, create_session, update_metric
 
@@ -278,6 +279,184 @@ def invite_user_to_channels(client, user_id, src_channel=None, logger=None):
                     pass
 
 
+def _is_user_manager(client, user_id):
+    if not managers_group:
+        return False
+    try:
+        for group_id in managers_group:
+            try:
+                resp = client.usergroups_users_list(usergroup=group_id)
+                users = resp.get("users") or []
+                if user_id in users:
+                    return True
+            except Exception:
+                continue
+        return False
+    except Exception:
+        return False
+
+
+def _get_all_workspace_members(client):
+    members = set()
+    cursor = None
+    while True:
+        try:
+            kwargs = {"limit": 1000}
+            if cursor:
+                kwargs["cursor"] = cursor
+            resp = client.users_list(**kwargs)
+            page_members = resp.get("members") or []
+            for user in page_members:
+                if not user.get("deleted") and not user.get("is_bot"):
+                    members.add(user.get("id"))
+            cursor = resp.get("response_metadata", {}).get("next_cursor") or None
+            if not cursor:
+                break
+        except Exception:
+            break
+    return members
+
+
+def _get_channel_name(client, channel_id):
+    try:
+        resp = client.conversations_info(channel=channel_id)
+        return resp.get("channel", {}).get("name", channel_id)
+    except Exception:
+        return channel_id
+
+
+def _build_dashboard_view(client):
+    blocks = [
+        {
+            "type": "header",
+            "text": {"type": "plain_text", "text": "Channel Management Dashboard"},
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "Manage user membership across specified channels.",
+            },
+        },
+        {"type": "divider"},
+    ]
+
+    if not invite_channels:
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "_No channels configured for sync._",
+                },
+            }
+        )
+        return {"type": "home", "blocks": blocks}
+
+    all_members = _get_all_workspace_members(client)
+
+    channel_info = {}
+    for channel_id in invite_channels:
+        members = _get_channel_members(client, channel_id)
+        channel_name = _get_channel_name(client, channel_id)
+        missing = all_members - members
+        channel_info[channel_id] = {
+            "name": channel_name,
+            "members": members,
+            "missing": missing,
+        }
+
+    blocks.append(
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*Configured Channels:* {len(invite_channels)}\n*Total Workspace Members:* {len(all_members)}",
+            },
+        }
+    )
+    blocks.append({"type": "divider"})
+
+    for channel_id, info in channel_info.items():
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*#{info['name']}*\nMembers: {len(info['members'])}\nMissing: {len(info['missing'])}",
+                },
+            }
+        )
+
+    blocks.append({"type": "divider"})
+    blocks.append(
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "Click the button below to sync all workspace members to all configured channels.",
+            },
+        }
+    )
+    blocks.append(
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Sync All Users to All Channels",
+                    },
+                    "style": "primary",
+                    "action_id": "sync_all_users",
+                    "value": "sync",
+                }
+            ],
+        }
+    )
+
+    return {"type": "home", "blocks": blocks}
+
+
+def _sync_all_users_to_channels(client, logger=None):
+    if not invite_channels:
+        return 0, 0
+
+    all_members = _get_all_workspace_members(client)
+
+    success_count = 0
+    failure_count = 0
+
+    for channel_id in invite_channels:
+        current_members = _get_channel_members(client, channel_id)
+        to_invite = all_members - current_members
+
+        for user_id in to_invite:
+            try:
+                client.conversations_invite(channel=channel_id, users=user_id)
+                success_count += 1
+                update_metric("invite_success", 1)
+            except Exception as e:
+                try:
+                    msg = getattr(e, "response", {}).get("error")
+                except Exception:
+                    msg = None
+                if msg and "already_in_channel" in msg:
+                    continue
+                failure_count += 1
+                update_metric("invite_failure", 1)
+                if logger:
+                    try:
+                        logger.error(
+                            "Failed to invite %s to %s: %s", user_id, channel_id, e
+                        )
+                    except Exception:
+                        pass
+
+    return success_count, failure_count
+
+
 def register_handlers(app):
     @app.event("message")
     def handle_message_events(body, event, client, logger):
@@ -315,5 +494,99 @@ def register_handlers(app):
                     invite_user_to_channels(client, user, channel, logger)
                 except Exception:
                     pass
+        except Exception:
+            return
+
+    @app.event("app_home_opened")
+    def handle_app_home_opened(body, event, client, logger):
+        try:
+            user_id = event.get("user")
+            if not user_id:
+                return
+
+            if not _is_user_manager(client, user_id):
+                try:
+                    client.views_publish(
+                        user_id=user_id,
+                        view={
+                            "type": "home",
+                            "blocks": [
+                                {
+                                    "type": "section",
+                                    "text": {
+                                        "type": "mrkdwn",
+                                        "text": "You do not have permission to access this dashboard.",
+                                    },
+                                }
+                            ],
+                        },
+                    )
+                except Exception:
+                    pass
+                return
+
+            try:
+                view = _build_dashboard_view(client)
+                client.views_publish(user_id=user_id, view=view)
+            except Exception as e:
+                if logger:
+                    try:
+                        logger.error("Failed to publish home view: %s", e)
+                    except Exception:
+                        pass
+        except Exception:
+            return
+
+    @app.action("sync_all_users")
+    def handle_sync_all_users(ack, body, client, logger):
+        try:
+            ack()
+            user_id = body.get("user", {}).get("id")
+            if not user_id:
+                return
+
+            if not _is_user_manager(client, user_id):
+                return
+
+            try:
+                client.views_publish(
+                    user_id=user_id,
+                    view={
+                        "type": "home",
+                        "blocks": [
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": "Syncing users to channels... Please wait.",
+                                },
+                            }
+                        ],
+                    },
+                )
+            except Exception:
+                pass
+
+            success, failure = _sync_all_users_to_channels(client, logger)
+
+            try:
+                view = _build_dashboard_view(client)
+                view["blocks"].insert(
+                    1,
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"Sync completed: {success} invites sent, {failure} failures.",
+                        },
+                    },
+                )
+                client.views_publish(user_id=user_id, view=view)
+            except Exception as e:
+                if logger:
+                    try:
+                        logger.error("Failed to update home view after sync: %s", e)
+                    except Exception:
+                        pass
         except Exception:
             return

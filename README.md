@@ -63,12 +63,20 @@ Config
  - `FAQ_LINK` — link to the FAQ used for references
  - `AI_DEBUG` — toggle debug level logging when set to true
  - `HEALTH_PORT` — port for the health server (default 8000)
+ - `INVITE_CHANNELS` — comma-separated list of channels to auto-invite users (optional)
+ - `CHECK_CHANNELS` — comma-separated list of channels to monitor for new members (optional)
+ - `SLACK_MANAGERS_GROUP_ID` — comma-separated list of Slack user group IDs that can access the dashboard (optional)
 
 # Slack FAQ Assistant Bot
 
 Why it exists
 - Because people ask the same things and we want consistent, FAQ-backed answers.
 - The bot keeps replies short and cites the FAQ so people can trust the answer and close their tickets quickly.
+
+Manager Dashboard
+- Click on the bot icon in Slack to open the management dashboard (only available to users in SLACK_MANAGERS_GROUP_ID).
+- The dashboard shows membership status across configured channels.
+- Use the "Sync All Users to All Channels" button to automatically invite all workspace members to the channels specified in INVITE_CHANNELS.
 
 Quick start
 1. Set up the Python environment and install dependencies:

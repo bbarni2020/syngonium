@@ -70,5 +70,10 @@ INVITE_CACHE_PATH = os.environ.get(
     "INVITE_CACHE_PATH",
     str(Path.home() / ".syngonium" / "invite_cache.json"),
 )
+managers_group_env = os.environ.get("SLACK_MANAGERS_GROUP_ID", "")
+if managers_group_env:
+    managers_group = [m.strip() for m in managers_group_env.split(",") if m.strip()]
+else:
+    managers_group = []
 os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 AI_DEBUG = os.environ.get("AI_DEBUG", "false").lower() in ("1", "true", "yes")
