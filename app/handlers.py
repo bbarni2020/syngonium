@@ -402,7 +402,7 @@ def _build_dashboard_view(client):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "Click the button below to sync all workspace members to all configured channels.",
+                "text": "Click the button below to sync all Construct members to all configured channels.",
             },
         }
     )
@@ -419,7 +419,16 @@ def _build_dashboard_view(client):
                     "style": "primary",
                     "action_id": "sync_all_users",
                     "value": "sync",
-                }
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Reload Dashboard",
+                    },
+                    "action_id": "reload_dashboard",
+                    "value": "reload",
+                },
             ],
         }
     )
@@ -596,5 +605,22 @@ def register_handlers(app):
                         logger.error("Failed to update home view after sync: %s", e)
                     except Exception:
                         pass
+        except Exception:
+            return
+
+    @app.action("reload_dashboard")
+    def handle_reload_dashboard(ack, body, client, logger):
+        try:
+            ack()
+            user_id = body.get("user", {}).get("id")
+            if not user_id:
+                return
+            if not _is_user_manager(client, user_id):
+                return
+            try:
+                view = _build_dashboard_view(client)
+                client.views_publish(user_id=user_id, view=view)
+            except Exception:
+                pass
         except Exception:
             return
