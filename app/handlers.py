@@ -298,14 +298,19 @@ def _is_user_manager(client, user_id):
 
 def _get_source_members(client):
     members = set()
-    if not check_channels:
-        return members
-    for check_chan in check_channels:
+    all_channels = []
+    if check_channels:
+        all_channels.extend(check_channels)
+    if invite_channels:
+        all_channels.extend(invite_channels)
+
+    for channel_id in all_channels:
         try:
-            chan_members = _get_channel_members(client, check_chan)
+            chan_members = _get_channel_members(client, channel_id)
         except Exception:
             chan_members = set()
         members.update(chan_members)
+
     filtered = set()
     for uid in members:
         if not _is_bot_or_deleted(client, uid):
@@ -379,7 +384,7 @@ def _build_dashboard_view(client):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Configured Channels:* {len(invite_channels)}\n*Eligible Members (in CHECK_CHANNELS):* {len(source_members)}",
+                "text": f"*Configured Channels:* {len(invite_channels)}\n*Eligible Members (in all channels):* {len(source_members)}",
             },
         }
     )
@@ -402,7 +407,7 @@ def _build_dashboard_view(client):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "Click the button below to sync all Construct members to all configured channels.",
+                "text": "Click the button below to sync all members from all channels to all configured channels.",
             },
         }
     )
