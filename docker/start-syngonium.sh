@@ -41,5 +41,57 @@ fi
 export PYTHONUNBUFFERED=1
 export PYTHONPATH="$APP_DIR"
 
-echo "[start] Launching app: python -m app.main"
-exec python -u -m app.main
+COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+export GIT_COMMIT_HASH="$COMMIT_HASH"
+echo "[start] Current commit: $COMMIT_HASH"
+
+CHECK_INTERVAL=${UPDATE_CHECK_INTERVAL:-300}
+
+APP_PID=""
+
+start_app() {
+  echo "[start] Launching app: python -m app.main"
+  python -u -m app.main &
+  APP_PID=$!
+  echo "[start] App started with PID $APP_PID"
+}
+
+stop_app() {
+  if [[ -n "$APP_PID" ]] && kill -0 "$APP_PID" 2>/dev/null; then
+    echo "[start] Stopping app (PID $APP_PID)"
+    kill -TERM "$APP_PID" 2>/dev/null || true
+    wait "$APP_PID" 2>/dev/null || true
+  fi
+}
+
+check_for_updates() {
+  git fetch --all --prune >/dev/null 2>&1
+  LOCAL=$(git rev-parse HEAD)
+  REMOTE=$(git rev-parse origin/"$BRANCH" 2>/dev/null || echo "$LOCAL")
+  if [[ "$LOCAL" != "$REMOTE" ]]; then
+    echo "[start] New commit detected: $REMOTE — restarting"
+    stop_app
+    git reset --hard origin/"$BRANCH"
+    if [[ -f requirements.txt ]]; then
+      python -m pip install --no-cache-dir -r requirements.txt
+    fi
+    COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+    export GIT_COMMIT_HASH="$COMMIT_HASH"
+    echo "[start] Updated to commit: $COMMIT_HASH"
+    start_app
+  fi
+}
+
+trap 'stop_app; exit 0' SIGTERM SIGINT
+
+start_app
+
+while true; do
+  sleep "$CHECK_INTERVAL"
+  if ! kill -0 "$APP_PID" 2>/dev/null; then
+    echo "[start] App crashed, restarting"
+    start_app
+  else
+    check_for_updates
+  fi
+done

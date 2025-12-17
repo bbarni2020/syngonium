@@ -34,7 +34,10 @@ def _start_health_server(port: int = HEALTH_PORT, metrics=None):
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
-                self.wfile.write(json.dumps({"status": "ok"}).encode())
+                commit = os.environ.get("GIT_COMMIT_HASH", "unknown")
+                self.wfile.write(
+                    json.dumps({"status": "ok", "commit": commit}).encode()
+                )
             elif self.path == "/metrics":
                 self.send_response(200)
                 self.send_header("Content-Type", "text/plain; version=0.0.4")
