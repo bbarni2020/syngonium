@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  syngonium:
+    image: python:3.13-slim
+    container_name: syngonium
+    working_dir: /srv/app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      GIT_REPO: ${GIT_REPO:?Set GIT_REPO in .env}
+      GIT_BRANCH: ${GIT_BRANCH:-main}
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - syngonium_data:/srv
+      - ./docker/start-syngonium.sh:/usr/local/bin/start-syngonium.sh:ro
+    command: ["/bin/bash", "/usr/local/bin/start-syngonium.sh"]
+    ports:
+      - "${HEALTH_PORT}:${HEALTH_PORT}"
+
+volumes:
+  syngonium_data: {}
