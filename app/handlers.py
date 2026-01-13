@@ -9,6 +9,7 @@ from .config import (
     AI_CIRCUIT_RECOVERY,
     AI_MAX_RPS,
     AI_RPS_CAPACITY,
+    BOT_MAINTAINER_SLACKID,
     LOCAL_DOCS_PATH,
     api_base,
     api_key,
@@ -100,7 +101,10 @@ def process_message(channel_arg, ts_arg, text_arg, client_arg, logger_arg):
                 )
             else:
                 check_reply_inner = "NO"
-        except Exception:
+        except Exception as e:
+            _send_maintainer_dm(
+                client_arg, f"Bot error during FAQ check: {str(e)}", logger_arg
+            )
             return
         if not re.search(r"\bYES\b", check_reply_inner, re.IGNORECASE):
             return
@@ -134,7 +138,12 @@ def process_message(channel_arg, ts_arg, text_arg, client_arg, logger_arg):
                     msg_inner = choices[0].get("message", {}).get("content")
                 else:
                     msg_inner = None
-            except Exception:
+            except Exception as e:
+                _send_maintainer_dm(
+                    client_arg,
+                    f"Bot error during answer generation: {str(e)}",
+                    logger_arg,
+                )
                 msg_inner = None
             if not msg_inner:
                 return
@@ -161,9 +170,15 @@ def process_message(channel_arg, ts_arg, text_arg, client_arg, logger_arg):
             client_arg.chat_postMessage(
                 channel=channel_arg, text=final_msg_inner, thread_ts=ts_arg
             )
-        except Exception:
+        except Exception as e:
+            _send_maintainer_dm(
+                client_arg, f"Bot error posting message: {str(e)}", logger_arg
+            )
             return
-    except Exception:
+    except Exception as e:
+        _send_maintainer_dm(
+            client_arg, f"Bot error in process_message: {str(e)}", logger_arg
+        )
         return
 
 
@@ -270,6 +285,9 @@ def invite_user_to_channels(client, user_id, src_channel=None, logger=None):
                 msg = None
             if msg and "already_in_channel" in msg:
                 continue
+            _send_maintainer_dm(
+                client, f"Failed to invite {user_id} to {invite_chan}: {str(e)}", logger
+            )
             if logger:
                 try:
                     logger.error(
@@ -477,6 +495,32 @@ def _sync_all_users_to_channels(client, logger=None):
                         pass
 
     return success_count, failure_count
+
+
+def _send_maintainer_dm(client, message, logger=None):
+    if not BOT_MAINTAINER_SLACKID:
+        return
+    try:
+        client.chat_postMessage(channel=BOT_MAINTAINER_SLACKID, text=message)
+    except Exception as e:
+        if logger:
+            try:
+                logger.error("Failed to send DM to maintainer: %s", e)
+            except Exception:
+                pass
+
+
+def setup_startup_handler(app, logger=None):
+    @app.event("app_mention")
+    def handle_startup(body, event, client):
+        try:
+            _send_maintainer_dm(client, "Bot is now online and ready!", logger)
+        except Exception as e:
+            if logger:
+                try:
+                    logger.error("Failed to handle startup notification: %s", e)
+                except Exception:
+                    pass
 
 
 def register_handlers(app):

@@ -48,6 +48,7 @@ MAX_WORKERS = int(os.environ.get("AI_MAX_WORKERS", "5"))
 AI_MAX_RPS = float(os.environ.get("AI_MAX_RPS", "20"))
 AI_RPS_CAPACITY = float(os.environ.get("AI_RPS_CAPACITY", "40"))
 AI_CIRCUIT_FAILS = int(os.environ.get("AI_CIRCUIT_FAILS", "6"))
+BOT_MAINTAINER_SLACKID = os.environ.get("BOT_MAINTAINER_SLACKID", "").strip()
 AI_CIRCUIT_RECOVERY = int(os.environ.get("AI_CIRCUIT_RECOVERY", "60"))
 listen_env = os.environ.get("LISTEN_CHANNEL_ID", "")
 if listen_env:

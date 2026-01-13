@@ -7,8 +7,8 @@ import socketserver
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-from .config import AI_DEBUG, HEALTH_PORT, app_token, bot_token
-from .handlers import register_handlers
+from .config import AI_DEBUG, BOT_MAINTAINER_SLACKID, HEALTH_PORT, app_token, bot_token
+from .handlers import _send_maintainer_dm, register_handlers, setup_startup_handler
 
 
 def create_app():
@@ -24,6 +24,8 @@ def create_app():
         raise SystemExit("Missing SLACK_BOT_TOKEN or SLACK_APP_TOKEN")
     app = App(token=bot_token)
     register_handlers(app)
+    logger = logging.getLogger(__name__)
+    setup_startup_handler(app, logger)
     return app
 
 
@@ -67,9 +69,15 @@ def _start_health_server(port: int = HEALTH_PORT, metrics=None):
 
 def start():
     logging.getLogger("construct.bot")
+    logger = logging.getLogger(__name__)
     app = create_app()
     handler = SocketModeHandler(app, app_token)
     _start_health_server()
+    try:
+        if BOT_MAINTAINER_SLACKID:
+            _send_maintainer_dm(app.client, "Bot is online and ready!", logger)
+    except Exception as e:
+        logger.error("Failed to send startup notification: %s", e)
     handler.start()
 
 
