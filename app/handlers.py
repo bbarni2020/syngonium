@@ -2,6 +2,7 @@ import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 
 from .ai_helpers import local_validate, read_faq
 from .config import (
@@ -316,24 +317,14 @@ def _is_user_manager(client, user_id):
 
 def _get_source_members(client):
     members = set()
-    all_channels = []
     if check_channels:
-        all_channels.extend(check_channels)
-    if invite_channels:
-        all_channels.extend(invite_channels)
-
-    for channel_id in all_channels:
-        try:
-            chan_members = _get_channel_members(client, channel_id)
-        except Exception:
-            chan_members = set()
-        members.update(chan_members)
-
-    filtered = set()
-    for uid in members:
-        if not _is_bot_or_deleted(client, uid):
-            filtered.add(uid)
-    return filtered
+        for channel_id in check_channels:
+            try:
+                chan_members = _get_channel_members(client, channel_id)
+            except Exception:
+                chan_members = set()
+            members.update(chan_members)
+    return members
 
 
 def _get_channel_name(client, channel_id):
@@ -357,8 +348,28 @@ def _build_dashboard_view(client):
                 "text": "Manage user membership across specified channels.",
             },
         },
-        {"type": "divider"},
     ]
+
+    commit_hash = os.environ.get("GIT_COMMIT_HASH")
+    last_updated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    context_text = f"Last updated: {last_updated}"
+    if commit_hash:
+        context_text += f" • Commit: `{commit_hash}`"
+
+    blocks.append(
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": context_text,
+                }
+            ],
+        }
+    )
+
+    blocks.append({"type": "divider"})
 
     if not invite_channels:
         blocks.append(
@@ -388,12 +399,13 @@ def _build_dashboard_view(client):
 
     channel_info = {}
     for channel_id in invite_channels:
-        members = _get_channel_members(client, channel_id)
+        all_members = _get_channel_members(client, channel_id)
         channel_name = _get_channel_name(client, channel_id)
-        missing = source_members - members
+
+        missing = source_members - all_members
         channel_info[channel_id] = {
             "name": channel_name,
-            "members": members,
+            "members": all_members,
             "missing": missing,
         }
 

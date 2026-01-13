@@ -11,7 +11,7 @@ services:
       GIT_BRANCH: ${GIT_BRANCH:-main}
       PYTHONUNBUFFERED: "1"
       APP_DIR: /srv/app
-      UPDATE_CHECK_INTERVAL: "300"
+      UPDATE_CHECK_INTERVAL: "3600"
     volumes:
       - syngonium_data:/srv
     command:
