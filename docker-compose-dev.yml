@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  syngonium:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: syngonium-dev
+    working_dir: /usr/src/app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PYTHONUNBUFFERED: "1"
+      UPDATE_CHECK_INTERVAL: "0"
+    volumes:
+      - .:/usr/src/app
+    command: ["python", "-m", "app.main"]
+    ports:
+      - "${HEALTH_PORT}:${HEALTH_PORT}"

@@ -14,7 +14,6 @@ services:
       PYTHONUNBUFFERED: "1"
     volumes:
       - syngonium_data:/srv
-      - ./docker/start-syngonium.sh:/usr/local/bin/start-syngonium.sh:ro
     command: ["/bin/bash", "/usr/local/bin/start-syngonium.sh"]
     ports:
       - "${HEALTH_PORT}:${HEALTH_PORT}"

@@ -461,40 +461,74 @@ def _build_dashboard_view(client):
 
 def _sync_all_users_to_channels(client, logger=None):
     if not invite_channels or not check_channels:
-        return 0, 0
+        return {"success": 0, "failure": 0, "details": []}
 
     source_members = _get_source_members(client)
+    stats = {"success": 0, "failure": 0, "details": []}
 
-    success_count = 0
-    failure_count = 0
+    def sync_channel(channel_id):
+        try:
+            current_members = _get_channel_members(client, channel_id)
+            to_invite = list(source_members - current_members)
 
-    for channel_id in invite_channels:
-        current_members = _get_channel_members(client, channel_id)
-        to_invite = source_members - current_members
+            if not to_invite:
+                return {"channel": channel_id, "invited": 0, "failed": 0, "error": None}
 
-        for user_id in to_invite:
-            try:
-                client.conversations_invite(channel=channel_id, users=user_id)
-                success_count += 1
-                update_metric("invite_success", 1)
-            except Exception as e:
+            channel_name = _get_channel_name(client, channel_id)
+            success = 0
+            failed = 0
+            batch_size = 50
+
+            for i in range(0, len(to_invite), batch_size):
+                batch = to_invite[i : i + batch_size]
                 try:
-                    msg = getattr(e, "response", {}).get("error")
-                except Exception:
-                    msg = None
-                if msg and "already_in_channel" in msg:
-                    continue
-                failure_count += 1
-                update_metric("invite_failure", 1)
-                if logger:
-                    try:
-                        logger.error(
-                            "Failed to invite %s to %s: %s", user_id, channel_id, e
-                        )
-                    except Exception:
-                        pass
+                    client.conversations_invite(channel=channel_id, users=batch)
+                    success += len(batch)
+                    update_metric("invite_success", len(batch))
+                except Exception as e:
+                    failed += len(batch)
+                    update_metric("invite_failure", len(batch))
+                    if logger:
+                        try:
+                            logger.error(
+                                "Failed to invite batch to %s (%s): %s",
+                                channel_name,
+                                channel_id,
+                                e,
+                            )
+                        except Exception:
+                            pass
 
-    return success_count, failure_count
+            return {
+                "channel": channel_id,
+                "name": channel_name,
+                "invited": success,
+                "failed": failed,
+                "error": None,
+            }
+        except Exception as e:
+            if logger:
+                try:
+                    logger.error("Error syncing channel %s: %s", channel_id, e)
+                except Exception:
+                    pass
+            return {
+                "channel": channel_id,
+                "name": _get_channel_name(client, channel_id),
+                "invited": 0,
+                "failed": 0,
+                "error": str(e),
+            }
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        results = list(pool.map(sync_channel, invite_channels))
+
+    for result in results:
+        stats["success"] += result["invited"]
+        stats["failure"] += result["failed"]
+        stats["details"].append(result)
+
+    return stats
 
 
 def _send_maintainer_dm(client, message, logger=None):
@@ -637,20 +671,64 @@ def register_handlers(app):
             except Exception:
                 pass
 
-            success, failure = _sync_all_users_to_channels(client, logger)
+            stats = _sync_all_users_to_channels(client, logger)
 
-            try:
-                view = _build_dashboard_view(client)
-                view["blocks"].insert(
-                    1,
+            message_blocks = []
+            if stats["success"] > 0 or stats["failure"] == 0:
+                message_blocks.append(
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"Sync completed: {success} invites sent, {failure} failures.",
+                            "text": f"✓ Sync completed: {stats['success']} invites sent",
                         },
-                    },
+                    }
                 )
+                if stats["failure"] > 0:
+                    message_blocks.append(
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": f"⚠ {stats['failure']} invites failed",
+                            },
+                        }
+                    )
+            else:
+                message_blocks.append(
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "✗ Sync failed - no users were invited",
+                        },
+                    }
+                )
+
+            for detail in stats["details"]:
+                channel_name = detail.get("name", detail["channel"])
+                invited = detail["invited"]
+                failed = detail["failed"]
+                error = detail["error"]
+
+                if error:
+                    text = f"*#{channel_name}* - Error: {error}"
+                else:
+                    text = f"*#{channel_name}* - Invited: {invited}, Failed: {failed}"
+
+                message_blocks.append(
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": text,
+                        },
+                    }
+                )
+
+            try:
+                view = _build_dashboard_view(client)
+                view["blocks"] = message_blocks + [{"type": "divider"}] + view["blocks"]
                 client.views_publish(user_id=user_id, view=view)
             except Exception as e:
                 if logger:
@@ -658,6 +736,19 @@ def register_handlers(app):
                         logger.error("Failed to update home view after sync: %s", e)
                     except Exception:
                         pass
+
+            maintainer_msg = f"Sync All Users completed:\n• Total invites: {stats['success']}\n• Total failures: {stats['failure']}"
+            for detail in stats["details"]:
+                channel_name = detail.get("name", detail["channel"])
+                if detail["error"]:
+                    maintainer_msg += f"\n• #{channel_name}: Error - {detail['error']}"
+                else:
+                    maintainer_msg += f"\n• #{channel_name}: +{detail['invited']} invited, {detail['failed']} failed"
+
+            try:
+                _send_maintainer_dm(client, maintainer_msg, logger)
+            except Exception:
+                pass
         except Exception:
             return
 
