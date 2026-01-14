@@ -154,14 +154,14 @@ Who runs this?
 
 Our team is led by a crew of 8 people. They've worked around the clock to help make this ysws come to life!
 
-[@user](https://hackclub.enterprise.slack.com/team/U0929F6RWL9) (org (The one who forced the others to work :D ))\
-[@user](https://hackclub.enterprise.slack.com/team/U07BN55GN3D) (sponsor/org (aka Money Lady :3))\
-[@user](https://hackclub.enterprise.slack.com/team/U09192704Q7) (lead website designer + org)\
-[@user](https://hackclub.enterprise.slack.com/team/U07D01SEFFV) (also an org)\
-[@user](https://hackclub.enterprise.slack.com/team/U07H3E1CW7J) (org/bot maker)\
-[@user](https://hackclub.enterprise.slack.com/team/U07AZFQLPQ8) (lead of design (aka cool sticker maker))\
-[@user](https://hackclub.enterprise.slack.com/team/U078WRWQPGF) (another org)\
-[@user](https://hackclub.enterprise.slack.com/team/U07UV4R2G4T) (club integration lead)
+[@Shayaan](https://hackclub.enterprise.slack.com/team/U0929F6RWL9) (org (The one who forced the others to work :D ))\
+[@Olive](https://hackclub.enterprise.slack.com/team/U07BN55GN3D) (sponsor/org (aka Money Lady :3))\
+[@Arca](https://hackclub.enterprise.slack.com/team/U09192704Q7) (lead website designer + org)\
+[@Mustafa Ali](https://hackclub.enterprise.slack.com/team/U07D01SEFFV) (also an org)\
+[@Barnabás](https://hackclub.enterprise.slack.com/team/U07H3E1CW7J) (org/bot maker)\
+[@KittyCat](https://hackclub.enterprise.slack.com/team/U07AZFQLPQ8) (lead of design (aka cool sticker maker))\
+[@grass](https://hackclub.enterprise.slack.com/team/U078WRWQPGF) (another org)\
+[@Charmunk](https://hackclub.enterprise.slack.com/team/U07UV4R2G4T) (club integration lead)
 
 :error: Troubleshooting/common errors
 =====================================
