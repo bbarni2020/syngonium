@@ -1,6 +1,15 @@
 A few things to clarify:
-double dipping: this means counting your hours in multiple programs (YSWSs)
-CONSTRUCT FAQ
+- double dipping: this means counting your hours in multiple programs (YSWSs)
+- Review can take up to 2 weeks. Please be patient!
+- The review flow: tier 1 review > printing (if your project isn't printed yet) > tier 2 review > you get the payout
+- Projects with less then 5 hours will be hard capped at 20 market score an hour. Projects above this limit can receive up to 60 market score an hour. Remember that market score makes both your printer upgrades and brick shop purchases cheaper.
+
+Construct FAQ / Guide
+
+:siren-real: Please take a look at this canvas. It contains everything you need to know before starting your first project. :siren-real:
+========================================================================================================================================
+
+* * * * *
 
 What is this?
 -------------
@@ -16,36 +25,36 @@ How can I earn prizes?
 ----------------------
 
 For every hour you work and journal, you shall receive 1 bag of clay!\
-Clay is the currency that you can use to buy a 3D printer! The cheapest printer is 40 clay!\
+Clay is the currency that you can use to buy a 3D printer! The cheapes
+
 After you buy a 3D printer, you will start receiving bricks instead of clay! 12 per hour! Bricks can be used to purchase items in the Brick Shop! They can also be used to upgrade your printer.\
-If you don't wish to buy a 3D printer, you may convert your clay bag into baricks. This is done by Ovenpheus at a rate of 10 bricks for 1 clay, upon request. You will continue to earn clay bags, which you can still convert. (This is in place in case you want to change your mind in the near future)\
+If you don't wish to buy a 3D printer, you may convert your clay bag into bricks. This is done by Ovenpheus at a rate of 10 bricks for 1 clay, upon request. You will continue to earn clay bags, which you can still convert. (This is in place in case you want to change your mind in the near future)\
 
 Alternatively, when you buy a base 3D printer, you won't need the help of Ovenpheus as you'll get a free, super cool - Firing Oven 2000 :tm: : which converts your bags of clay automatically at the rate of 10 bricks for every 1 bag of clay. (Your printer prints an extra 2!, making 12 in total per hour!)
 
 How many projects can I make?
 -----------------------------
 
-You can make as many projects as you like, as long as each project meets the 2-hour minimum requirement!\
-Longer projects will gain you a higher shop score, so aim for . Please avoid copying other projects 1:1 or you will be chased by Orpheus.
+You can make as many projects as you like, as long as each project meets the 2-hour minimum requirement! (As long as they're within the set parameters)\
+Longer projects will gain you a higher shop score and gets you more out of your work i.e CLAYS, so aim for . Please avoid copying other projects 1:1 or you will be chased by Orpheus.\
+From now (15 jan). Projects with less then 5 hours will be hard capped at 20 market score an hour. Projects above this limit can receive up to 60 market score an hour. Remember that market score makes both your printer upgrades and brick shop purchases cheaper.
 
 How do I track my time?
 -----------------------
 
-When you make a project on [construct.hackclub.com](https://construct.hackclub.com/), there will be a journal attached where you can record your time & log what you do over time on your project.\
-Journal logs are capped at 2 hours, regardless of how long you spent on that journal. You cannot spam 2 hour logs continuously. The time between from one journal to the next is recorded, and you may only journal on what time has elapsed since your last journal. (Only applicable if less then two hours have elapsed since last journal)\
-If you lose hours on your work, then there's nothing we can do, if we give you extra minutes/hours then there isn't any point in having a journaling system like this.\
+`When you make a project on [construct.hackclub.com](https://construct.hackclub.com/), there will be a journal attached where you can record your time & log what you do over time on your project.`\
+`Journal logs are capped at 2 hours, regardless of how long you spent on that journal. You cannot spam 2 hour logs continuously. The time between from one journal to the next is recorded, and you may only journal on what time has elapsed since your last journal. (Only applicable if less then two hours have elapsed since last journal)`\
+`If you lose hours on your work, then there's nothing we can do, if we give you extra minutes/hours then there isn't any point in having a journaling system like this.`\
 ***NOTE: We DO NOT need hackatime! There is no hackatime support/documentation for most cad software.***
-
-Can I work on multiple short projects and what is the minimum Hours Requirement ?
----------------------------------------------------------------------------------
-
-Yes, as long as each project meets the 2-hour minimum requirement. However, we'd recommend making longer projects if you don't already have a printer in order to reduce the impact of the printing cost (which will come out of your project payout, though it'll be somewhat subsidised).
 
 What can I make?
 ----------------
 
 You can make anything you want, as long as it is designed to be 3D printable. This can be a keyring, or a model of Orpheus, it could even just be some random thing that you like!\
-You can't make things with non 3d printed parts, electrical or non electrical. This includes bearings, motors, pcbs and wiring, although you can use nuts and bolts in common standard sizes such as M3, M5 etc (though don't go above M6).
+You can't make things with non 3d printed parts, electrical or non electrical. This includes bearings, motors, pcbs and wiring, although you can use nuts and bolts in common standard sizes such as M3, M5 etc (though don't go above M6).\
+Projects should clearly have a use, If you make an extruded rectangle, then that will most likely be rejected. If your unsure whether or not your project will be idea, pitch your idea in [#construct-help](https://slack.com/archives/C09QSTUV88Y)!\
+For now (15 jan) dummy phones and ANY sort of weapons will not be accepted, any current submissions will be honoured. ( check the comment for detailed info about weapons allowed )\
+*(No cadding pipebombs!)*
 
 What is market score?
 ---------------------
@@ -79,7 +88,7 @@ Your project will have to be physically produced to count as shipped (we've been
 -   Someone on Printables thinks your project is cool and posts a make of it!
 -   If you already have a printer, you print it yourself and put photos of it on Printables.
 -   One of our printers prints it for you and posts a make of it (this is the default if your project doesn't have any makes or photos, also we will take a really small cut of your payout to help cover the filament cost).
--   [Coming soon] You select that you want it shipped to you after printing and it is handled through the [#channel](https://slack.com/archives/C083P4FJM46).
+-   [Coming soon] You select that you want it shipped to you after printing and it is handled through the [#printing-legion](https://slack.com/archives/C083P4FJM46).
 
 We will print the parts you make at the cost of your earnings, the cost scales with the amount of filament your project requires, so please try keep your projects as physically small as possible if you want us to print it.\
 ***NOTE: We cannot send a 3d printer before you ship your models, this is because there are some people who, in bad faith, will just take the 3d printer and leave.***\
@@ -93,12 +102,12 @@ Your earnings go towards the cost of filament, this is charged @ 2 cents per gra
 
 **Note: We are NOT taking actual money from you, we're just taking bits of your clay/brick pay out. Once again, we are NOT charging you any fees.**
 
-What happens if I double-dip with [#channel](https://slack.com/archives/C09B27RC0FL) (commit fraud)?
-----------------------------------------------------------------------------------------------------
+What happens if I double-dip with [#fraud-ysws](https://slack.com/archives/C09B27RC0FL) (commit fraud)?
+-------------------------------------------------------------------------------------------------------
 
 Hour inflation is not tolerated in hack club, or in any of its sponsored programs.\
 If you are caught committing hour inflation (fraud) then you will be banned from this ysws, and all current and future ysws, for an indefinite amount of time.\
-If you believe you have been banned unfairly, please dm [@user](https://hackclub.enterprise.slack.com/team/U091HC53CE8). This is the only way you can appeal.\
+If you believe you have been banned unfairly, please dm [@Fraud Squad](https://hackclub.enterprise.slack.com/team/U091HC53CE8). This is the only way you can appeal.\
 If you get unbanned, after frauding, then you will lose all your currency and all your projects will be deleted.\
 If we have made an error, then it will be overturned with no loss in currency.\
 Please do not fraud as it takes attention away from people who truly work honestly.
@@ -154,14 +163,14 @@ Who runs this?
 
 Our team is led by a crew of 8 people. They've worked around the clock to help make this ysws come to life!
 
-[@user](https://hackclub.enterprise.slack.com/team/U0929F6RWL9) (org (The one who forced the others to work :D ))\
-[@user](https://hackclub.enterprise.slack.com/team/U07BN55GN3D) (sponsor/org (aka Money Lady :3))\
-[@user](https://hackclub.enterprise.slack.com/team/U09192704Q7) (lead website designer + org)\
-[@user](https://hackclub.enterprise.slack.com/team/U07D01SEFFV) (also an org)\
-[@user](https://hackclub.enterprise.slack.com/team/U07H3E1CW7J) (org/bot maker)\
-[@user](https://hackclub.enterprise.slack.com/team/U07AZFQLPQ8) (lead of design (aka cool sticker maker))\
-[@user](https://hackclub.enterprise.slack.com/team/U078WRWQPGF) (another org)\
-[@user](https://hackclub.enterprise.slack.com/team/U07UV4R2G4T) (club integration lead)
+[@Shayaan](https://hackclub.enterprise.slack.com/team/U0929F6RWL9) (org (The one who forced the others to work :D ))\
+[@Olive](https://hackclub.enterprise.slack.com/team/U07BN55GN3D) (sponsor/org (aka Money Lady :3))\
+[@Arca](https://hackclub.enterprise.slack.com/team/U09192704Q7) (lead website designer + org)\
+[@Mustafa Ali](https://hackclub.enterprise.slack.com/team/U07D01SEFFV) (also an org)\
+[@Barnabás](https://hackclub.enterprise.slack.com/team/U07H3E1CW7J) (org/bot maker)\
+[@KittyCat](https://hackclub.enterprise.slack.com/team/U07AZFQLPQ8) (lead of design (aka cool sticker maker))\
+[@grass](https://hackclub.enterprise.slack.com/team/U078WRWQPGF) (another org)\
+[@Charmunk](https://hackclub.enterprise.slack.com/team/U07UV4R2G4T) (club integration lead)
 
 :error: Troubleshooting/common errors
 =====================================
