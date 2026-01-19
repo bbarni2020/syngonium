@@ -89,3 +89,26 @@ def update_metric(key: str, amount: int = 1):
         metrics[key] += amount
     except KeyError:
         metrics[key] = amount
+
+
+_daily_joins_lock = threading.Lock()
+_daily_joins_state = {"count": 0, "expires_at": 0.0}
+
+
+def increment_daily_joins(amount: int = 1):
+    now = time.time()
+    expire = now + 86400
+    with _daily_joins_lock:
+        if now >= _daily_joins_state.get("expires_at", 0.0):
+            _daily_joins_state["count"] = amount
+            _daily_joins_state["expires_at"] = expire
+        else:
+            _daily_joins_state["count"] += amount
+
+
+def get_daily_joins() -> int:
+    now = time.time()
+    with _daily_joins_lock:
+        if now >= _daily_joins_state.get("expires_at", 0.0):
+            return 0
+        return int(_daily_joins_state.get("count", 0))

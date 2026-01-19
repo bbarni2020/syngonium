@@ -21,7 +21,14 @@ from .config import (
     listen_channels,
     managers_group,
 )
-from .utils import CircuitBreaker, TokenBucket, create_session, update_metric
+from .utils import (
+    CircuitBreaker,
+    TokenBucket,
+    create_session,
+    get_daily_joins,
+    increment_daily_joins,
+    update_metric,
+)
 
 session = create_session()
 rate_limiter = TokenBucket(rate=AI_MAX_RPS, capacity=AI_RPS_CAPACITY)
@@ -369,6 +376,21 @@ def _build_dashboard_view(client):
         }
     )
 
+    try:
+        joins_last_day = get_daily_joins()
+    except Exception:
+        joins_last_day = 0
+
+    blocks.append(
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*Joined in last 24h:* {joins_last_day}",
+            },
+        }
+    )
+
     blocks.append({"type": "divider"})
 
     if not invite_channels:
@@ -599,6 +621,17 @@ def register_handlers(app):
                 return
             if channel and check_channels and channel not in check_channels:
                 return
+            try:
+                if _is_bot_or_deleted(client, user):
+                    return
+            except Exception:
+                return
+
+            try:
+                increment_daily_joins(1)
+            except Exception:
+                pass
+
             try:
                 executor.submit(invite_user_to_channels, client, user, channel, logger)
             except Exception:
