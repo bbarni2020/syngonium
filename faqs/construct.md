@@ -3,6 +3,7 @@ A few things to clarify before the FAQ:
 - Review can take up to 2-3 weeks. Please be patient!
 - The review flow: tier 1 review > printing (if your project isn't printed yet) > tier 2 review > you get the payout
 - Projects with less then 5 hours will be hard capped at 20 market score an hour. Projects above this limit can receive up to 60 market score an hour. Remember that market score makes both your printer upgrades and brick shop purchases cheaper.
+- printer prices can be viewed: https://docs.google.com/spreadsheets/d/1VQ8CRnDzgVfowucifQK3YbaJ7mFEpbFI3TClq1U6AGY/edit?usp=sharing
 
 Construct FAQ / Guide
 
