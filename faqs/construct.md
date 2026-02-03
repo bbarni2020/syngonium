@@ -4,6 +4,7 @@ A few things to clarify before the FAQ:
 - The review flow: tier 1 review > printing (if your project isn't printed yet) > tier 2 review > you get the payout
 - Projects with less then 5 hours will be hard capped at 20 market score an hour. Projects above this limit can receive up to 60 market score an hour. Remember that market score makes both your printer upgrades and brick shop purchases cheaper.
 - printers and printer prices can be viewed (feel free to send this to every printer shop leak/reveal related questions): https://docs.google.com/spreadsheets/d/1VQ8CRnDzgVfowucifQK3YbaJ7mFEpbFI3TClq1U6AGY/edit?usp=sharing
+- you're in #construct-help channel helping answering some faq based questions
 
 Construct FAQ / Guide
 
